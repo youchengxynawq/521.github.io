@@ -2,209 +2,197 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>给宝贝的小心意</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>给你的小温柔</title>
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: "微软雅黑", "Helvetica Neue", sans-serif;
+      font-family: "PingFang SC", "Helvetica Neue", sans-serif;
     }
     body {
-      background-color: #fdf2f8;
-      min-height: 100vh;
+      background-color: #fff5f8;
+      height: 100vh;
       overflow: hidden;
+      position: relative;
     }
     /* 聊天框样式 */
-    .chat-bubble {
+    .bubble {
       position: absolute;
-      max-width: 180px;
+      max-width: 200px;
       padding: 12px 16px;
-      border-radius: 20px;
+      border-radius: 18px;
       color: white;
       font-size: 14px;
-      line-height: 1.5;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      line-height: 1.6;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
       opacity: 0;
-      transition: opacity 0.8s ease-out;
-      z-index: 1;
+      transform: scale(0.9);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+      z-index: 10;
     }
-    /* 显示动画 */
-    .chat-bubble.show {
+    .bubble.show {
       opacity: 1;
+      transform: scale(1);
     }
-    /* 不同颜色聊天框 */
-    .color1 { background-color: #ff6b8b; }
-    .color2 { background-color: #8b5cf6; }
-    .color3 { background-color: #3b82f6; }
-    .color4 { background-color: #22c55e; }
-    .color5 { background-color: #f59e0b; }
-    .color6 { background-color: #ec4899; }
-    .color7 { background-color: #14b8a6; }
-    .color8 { background-color: #6366f1; }
-    /* 初始加载提示 */
-    .loading {
+    /* 8种柔和颜色（微信友好色调） */
+    .c1 { background-color: #ff7a9c; }
+    .c2 { background-color: #a674e8; }
+    .c3 { background-color: #5ea9f4; }
+    .c4 { background-color: #50d27d; }
+    .c5 { background-color: #ffc456; }
+    .c6 { background-color: #ff8c61; }
+    .c7 { background-color: #74c0fc; }
+    .c8 { background-color: #f767a0; }
+    /* 初始加载提示（微信会优先显示） */
+    .init {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
       text-align: center;
-      z-index: 10;
+      z-index: 100;
     }
-    .loading-text {
-      font-size: 20px;
-      color: #ff6b8b;
-      margin-bottom: 20px;
+    .init-text {
+      font-size: 18px;
+      color: #ff7a9c;
+      margin-bottom: 15px;
     }
-    .heart {
+    .dot {
       display: inline-block;
-      animation: heartbeat 1.2s infinite;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #ff7a9c;
+      margin: 0 3px;
+      animation: jump 1.4s infinite ease-in-out both;
     }
-    @keyframes heartbeat {
-      0% { transform: scale(1); }
-      15% { transform: scale(1.15); }
-      30% { transform: scale(1); }
-      45% { transform: scale(1.15); }
-      60% { transform: scale(1); }
+    .dot:nth-child(1) { animation-delay: -0.32s; }
+    .dot:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes jump {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1); }
     }
   </style>
 </head>
 <body>
-  <!-- 初始加载提示 -->
-  <div class="loading" id="loading">
-    <div class="loading-text">
-      <span class="heart">❤️</span> 正在加载心意 <span class="heart">❤️</span>
+  <!-- 初始加载提示（微信中会先显示，避免白屏） -->
+  <div class="init" id="init">
+    <div class="init-text">正在加载对你的关心...</div>
+    <div>
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
     </div>
   </div>
 
   <!-- 聊天框容器 -->
-  <div id="bubble-container"></div>
+  <div id="container"></div>
 
   <script>
-    // 关心的话语（可自行修改添加）
-    const messages = [
+    // 关心的话（更口语化，适合微信语境）
+    const words = [
       "宝贝，今天有好好吃饭吗？",
-      "天气变凉啦，记得加衣服～",
-      "想你啦，你在忙什么呀？",
-      "累了就歇会儿，别硬扛呀",
-      "你的笑容是我的小太阳",
-      "晚上别熬夜，早点睡觉哦",
-      "今天也要开开心心的呀",
-      "不开心就告诉我，我陪你",
-      "我会一直一直陪着你",
-      "你今天真的超可爱！",
-      "记得多喝水，补充水分",
-      "不管怎样，我都在你身边",
-      "看到你开心，我就幸福",
-      "工作再忙也要注意休息",
-      "你是我最想珍惜的人",
-      "有空我们去吃你爱吃的",
-      "你的小情绪我都懂呀",
-      "别给自己太大压力，你超棒",
-      "我会努力保护好你",
-      "一想到你就忍不住笑",
-      "今天有什么好玩的事吗？",
-      "累了就靠靠我，我在",
-      "你做什么我都支持你",
-      "和你在一起每天都甜",
-      "我记得你说的每句话",
-      "照顾好自己，我会担心",
-      "你照亮了我的每一天",
-      "我对你的爱不会变",
-      "你的一切我都好喜欢",
-      "想和你做很多很多事",
+      "天气凉了，记得加件外套呀",
+      "想你啦，你现在在干嘛呢",
+      "累不累呀？歇会儿再忙嘛",
+      "看到你笑，我一天都开心",
+      "晚上别熬夜啦，早点睡哦",
+      "今天也要保持好心情呀",
+      "有不开心的，一定要告诉我",
+      "我会一直陪着你的，放心呀",
+      "你今天真的超好看！",
+      "多喝水呀，别渴着自己",
+      "不管发生啥，我都在呢",
+      "你开心，我就觉得超幸福",
+      "再忙也要记得休息呀",
+      "你是我最想疼的人呢",
+      "等你有空，去吃你爱吃的",
+      "你的小情绪我都看在眼里",
+      "别给自己压力，你已经很棒了",
+      "我会努力保护好你的",
+      "一想到你就忍不住笑呢",
+      "今天有没有好玩的事呀",
+      "累了就靠靠我，随时在",
+      "你做什么我都支持你呀",
+      "和你在一起每天都甜滋滋的",
+      "你说的话我都记着呢",
+      "照顾好自己，不然我会担心的",
+      "你就是我的小太阳呀",
+      "我对你的爱一直都在",
+      "你的一切我都好喜欢呀",
+      "想和你一起做很多很多事",
       "有你在，我什么都不怕",
       "你今天有没有想我呀？",
-      "遇到你是我最大的幸运",
-      "我会让你每天都开心",
-      "你是我生命中最美的风景"
+      "遇到你是我最幸运的事",
+      "我会让你每天都开开心心的",
+      "你是我生命里最美的风景"
     ];
 
-    // 聊天框颜色类名
-    const colorClasses = [
-      "color1", "color2", "color3", "color4",
-      "color5", "color6", "color7", "color8"
-    ];
+    // 颜色类名
+    const colors = ['c1','c2','c3','c4','c5','c6','c7','c8'];
+    const container = document.getElementById('container');
+    const init = document.getElementById('init');
+    let timer;
 
-    const container = document.getElementById('bubble-container');
-    const loading = document.getElementById('loading');
-    let intervalId;
-
-    // 创建单个聊天框
+    // 创建聊天框
     function createBubble() {
-      // 创建元素
       const bubble = document.createElement('div');
-      bubble.className = "chat-bubble";
-
-      // 随机选消息和颜色
-      const randomMsg = messages[Math.floor(Math.random() * messages.length)];
-      const randomColor = colorClasses[Math.floor(Math.random() * colorClasses.length)];
-      bubble.textContent = randomMsg;
-      bubble.classList.add(randomColor);
-
-      // 随机位置（避免超出屏幕）
-      const maxX = window.innerWidth - 200;
+      bubble.className = 'bubble ' + colors[Math.floor(Math.random()*8)];
+      bubble.innerText = words[Math.floor(Math.random()*words.length)];
+      
+      // 随机位置（适配微信窗口）
+      const maxX = window.innerWidth - 220;
       const maxY = window.innerHeight - 100;
-      const x = Math.floor(Math.random() * maxX);
-      const y = Math.floor(Math.random() * maxY);
-      bubble.style.left = `${x}px`;
-      bubble.style.top = `${y}px`;
-
-      // 随机小旋转（更生动）
-      const rotate = (Math.random() - 0.5) * 8;
-      bubble.style.transform = `rotate(${rotate}deg)`;
-
-      // 添加到页面
+      bubble.style.left = Math.random()*maxX + 'px';
+      bubble.style.top = Math.random()*maxY + 'px';
+      
+      // 轻微旋转（更生动）
+      bubble.style.transform = `rotate(${ (Math.random()-0.5)*6 }deg) scale(0.9)`;
+      
       container.appendChild(bubble);
-
-      // 渐显
-      setTimeout(() => {
-        bubble.classList.add('show');
-      }, 50);
-
-      // 5-8秒后渐隐并删除
+      
+      // 延迟显示（避免微信动画阻塞）
+      setTimeout(() => bubble.classList.add('show'), 100);
+      
+      // 5-7秒后消失
       setTimeout(() => {
         bubble.classList.remove('show');
-        setTimeout(() => {
-          if (container.contains(bubble)) {
-            container.removeChild(bubble);
-          }
-        }, 800);
-      }, 5000 + Math.random() * 3000);
+        setTimeout(() => bubble.remove(), 600);
+      }, 5000 + Math.random()*2000);
     }
 
-    // 页面加载完成后启动
-    window.onload = function() {
+    // 微信环境检测与启动
+    function start() {
       // 隐藏加载提示
       setTimeout(() => {
-        loading.style.opacity = 0;
-        setTimeout(() => {
-          loading.style.display = 'none';
-        }, 800);
-      }, 1500);
-
-      // 初始生成5个
-      for (let i = 0; i < 5; i++) {
-        setTimeout(createBubble, i * 300);
+        init.style.opacity = '0';
+        setTimeout(() => init.remove(), 500);
+      }, 1200);
+      
+      // 初始生成6个（微信中分批生成更流畅）
+      for(let i=0; i<6; i++) {
+        setTimeout(createBubble, i*300);
       }
+      
+      // 每800ms生成一个（控制频率，避免微信卡顿）
+      timer = setInterval(createBubble, 800);
+    }
 
-      // 每隔600毫秒生成一个（持续不断）
-      intervalId = setInterval(createBubble, 600);
-    };
+    // 微信中优先使用DOMContentLoaded事件（避免加载延迟）
+    document.addEventListener('DOMContentLoaded', start);
 
-    // 窗口 resize 时调整位置（适配手机旋转）
-    window.onresize = function() {
-      const bubbles = document.querySelectorAll('.chat-bubble');
-      bubbles.forEach(bubble => {
-        const maxX = window.innerWidth - 200;
+    // 适配微信窗口变化（比如旋转屏幕）
+    window.addEventListener('resize', () => {
+      const bubbles = document.querySelectorAll('.bubble');
+      bubbles.forEach(b => {
+        const maxX = window.innerWidth - 220;
         const maxY = window.innerHeight - 100;
-        const x = Math.floor(Math.random() * maxX);
-        const y = Math.floor(Math.random() * maxY);
-        bubble.style.left = `${x}px`;
-        bubble.style.top = `${y}px`;
+        b.style.left = Math.random()*maxX + 'px';
+        b.style.top = Math.random()*maxY + 'px';
       });
-    };
+    });
   </script>
 </body>
 </html>
