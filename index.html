@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>给宝贝的小心意</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "微软雅黑", "Helvetica Neue", sans-serif;
+    }
+    body {
+      background-color: #fdf2f8;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    /* 聊天框样式 */
+    .chat-bubble {
+      position: absolute;
+      max-width: 180px;
+      padding: 12px 16px;
+      border-radius: 20px;
+      color: white;
+      font-size: 14px;
+      line-height: 1.5;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      opacity: 0;
+      transition: opacity 0.8s ease-out;
+      z-index: 1;
+    }
+    /* 显示动画 */
+    .chat-bubble.show {
+      opacity: 1;
+    }
+    /* 不同颜色聊天框 */
+    .color1 { background-color: #ff6b8b; }
+    .color2 { background-color: #8b5cf6; }
+    .color3 { background-color: #3b82f6; }
+    .color4 { background-color: #22c55e; }
+    .color5 { background-color: #f59e0b; }
+    .color6 { background-color: #ec4899; }
+    .color7 { background-color: #14b8a6; }
+    .color8 { background-color: #6366f1; }
+    /* 初始加载提示 */
+    .loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      z-index: 10;
+    }
+    .loading-text {
+      font-size: 20px;
+      color: #ff6b8b;
+      margin-bottom: 20px;
+    }
+    .heart {
+      display: inline-block;
+      animation: heartbeat 1.2s infinite;
+    }
+    @keyframes heartbeat {
+      0% { transform: scale(1); }
+      15% { transform: scale(1.15); }
+      30% { transform: scale(1); }
+      45% { transform: scale(1.15); }
+      60% { transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+  <!-- 初始加载提示 -->
+  <div class="loading" id="loading">
+    <div class="loading-text">
+      <span class="heart">❤️</span> 正在加载心意 <span class="heart">❤️</span>
+    </div>
+  </div>
+
+  <!-- 聊天框容器 -->
+  <div id="bubble-container"></div>
+
+  <script>
+    // 关心的话语（可自行修改添加）
+    const messages = [
+      "宝贝，今天有好好吃饭吗？",
+      "天气变凉啦，记得加衣服～",
+      "想你啦，你在忙什么呀？",
+      "累了就歇会儿，别硬扛呀",
+      "你的笑容是我的小太阳",
+      "晚上别熬夜，早点睡觉哦",
+      "今天也要开开心心的呀",
+      "不开心就告诉我，我陪你",
+      "我会一直一直陪着你",
+      "你今天真的超可爱！",
+      "记得多喝水，补充水分",
+      "不管怎样，我都在你身边",
+      "看到你开心，我就幸福",
+      "工作再忙也要注意休息",
+      "你是我最想珍惜的人",
+      "有空我们去吃你爱吃的",
+      "你的小情绪我都懂呀",
+      "别给自己太大压力，你超棒",
+      "我会努力保护好你",
+      "一想到你就忍不住笑",
+      "今天有什么好玩的事吗？",
+      "累了就靠靠我，我在",
+      "你做什么我都支持你",
+      "和你在一起每天都甜",
+      "我记得你说的每句话",
+      "照顾好自己，我会担心",
+      "你照亮了我的每一天",
+      "我对你的爱不会变",
+      "你的一切我都好喜欢",
+      "想和你做很多很多事",
+      "有你在，我什么都不怕",
+      "你今天有没有想我呀？",
+      "遇到你是我最大的幸运",
+      "我会让你每天都开心",
+      "你是我生命中最美的风景"
+    ];
+
+    // 聊天框颜色类名
+    const colorClasses = [
+      "color1", "color2", "color3", "color4",
+      "color5", "color6", "color7", "color8"
+    ];
+
+    const container = document.getElementById('bubble-container');
+    const loading = document.getElementById('loading');
+    let intervalId;
+
+    // 创建单个聊天框
+    function createBubble() {
+      // 创建元素
+      const bubble = document.createElement('div');
+      bubble.className = "chat-bubble";
+
+      // 随机选消息和颜色
+      const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+      const randomColor = colorClasses[Math.floor(Math.random() * colorClasses.length)];
+      bubble.textContent = randomMsg;
+      bubble.classList.add(randomColor);
+
+      // 随机位置（避免超出屏幕）
+      const maxX = window.innerWidth - 200;
+      const maxY = window.innerHeight - 100;
+      const x = Math.floor(Math.random() * maxX);
+      const y = Math.floor(Math.random() * maxY);
+      bubble.style.left = `${x}px`;
+      bubble.style.top = `${y}px`;
+
+      // 随机小旋转（更生动）
+      const rotate = (Math.random() - 0.5) * 8;
+      bubble.style.transform = `rotate(${rotate}deg)`;
+
+      // 添加到页面
+      container.appendChild(bubble);
+
+      // 渐显
+      setTimeout(() => {
+        bubble.classList.add('show');
+      }, 50);
+
+      // 5-8秒后渐隐并删除
+      setTimeout(() => {
+        bubble.classList.remove('show');
+        setTimeout(() => {
+          if (container.contains(bubble)) {
+            container.removeChild(bubble);
+          }
+        }, 800);
+      }, 5000 + Math.random() * 3000);
+    }
+
+    // 页面加载完成后启动
+    window.onload = function() {
+      // 隐藏加载提示
+      setTimeout(() => {
+        loading.style.opacity = 0;
+        setTimeout(() => {
+          loading.style.display = 'none';
+        }, 800);
+      }, 1500);
+
+      // 初始生成5个
+      for (let i = 0; i < 5; i++) {
+        setTimeout(createBubble, i * 300);
+      }
+
+      // 每隔600毫秒生成一个（持续不断）
+      intervalId = setInterval(createBubble, 600);
+    };
+
+    // 窗口 resize 时调整位置（适配手机旋转）
+    window.onresize = function() {
+      const bubbles = document.querySelectorAll('.chat-bubble');
+      bubbles.forEach(bubble => {
+        const maxX = window.innerWidth - 200;
+        const maxY = window.innerHeight - 100;
+        const x = Math.floor(Math.random() * maxX);
+        const y = Math.floor(Math.random() * maxY);
+        bubble.style.left = `${x}px`;
+        bubble.style.top = `${y}px`;
+      });
+    };
+  </script>
+</body>
+</html>
